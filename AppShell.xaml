@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="LLMChat.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:LLMChat.Views"
+    Title="LLMChat"
+    Shell.TabBarBackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark='#1A1A2E'}"
+    Shell.TabBarForegroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark='#6C5CE7'}"
+    Shell.TabBarTitleColor="{AppThemeBinding Light={StaticResource Black}, Dark='#EAEAEA'}"
+    Shell.TabBarUnselectedColor="{AppThemeBinding Light={StaticResource Gray500}, Dark='#5A5A7A'}">
+
+    <Shell.NavBarIsVisible>False</Shell.NavBarIsVisible>
+
+    <TabBar>
+        <ShellContent
+            Title="Chat"
+            Icon="{OnPlatform Android=chat_icon.svg, iOS=chat_icon.svg}"
+            ContentTemplate="{DataTemplate views:ChatPage}"
+            Route="ChatPage" />
+
+        <ShellContent
+            Title="Ajustes"
+            Icon="{OnPlatform Android=settings_icon.svg, iOS=settings_icon.svg}"
+            ContentTemplate="{DataTemplate views:SettingsPage}"
+            Route="SettingsPage" />
+    </TabBar>
+
+</Shell>

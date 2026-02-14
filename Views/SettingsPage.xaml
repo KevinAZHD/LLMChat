@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:LLMChat.ViewModels"
+             x:Class="LLMChat.Views.SettingsPage"
+             x:DataType="vm:SettingsViewModel"
+             Title="Ajustes"
+             BackgroundColor="{DynamicResource PageBackground}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="14">
+
+            <Label Text="Ajustes"
+                   FontSize="26" FontAttributes="Bold"
+                   TextColor="{DynamicResource PrimaryText}"
+                   Margin="0,4,0,4"/>
+
+            <!-- ═══════ BROKER ═══════ -->
+            <Border BackgroundColor="{DynamicResource CardBackground}"
+                    StrokeShape="RoundRectangle 16"
+                    Stroke="{DynamicResource BorderColor}"
+                    StrokeThickness="1" Padding="18">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Broker" FontSize="17" FontAttributes="Bold"
+                           TextColor="{DynamicResource AccentColor}"/>
+
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Nombre de usuario" FontSize="12" TextColor="{DynamicResource SecondaryText}"/>
+                        <Border BackgroundColor="{DynamicResource InputBackground}" StrokeShape="RoundRectangle 10"
+                                Stroke="{DynamicResource BorderColor}" StrokeThickness="1" Padding="6,2">
+                            <Entry Text="{Binding UserName}" Placeholder="Nombre..."
+                                   TextColor="{DynamicResource PrimaryText}" FontSize="14"/>
+                        </Border>
+                        <Label Text="{Binding UserNameError}" FontSize="11" TextColor="{StaticResource DangerColor}"
+                               IsVisible="{Binding UserNameError, Converter={StaticResource StringNotEmptyConverter}}"/>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="IP Broker" FontSize="12" TextColor="{DynamicResource SecondaryText}"/>
+                        <Border BackgroundColor="{DynamicResource InputBackground}" StrokeShape="RoundRectangle 10"
+                                Stroke="{DynamicResource BorderColor}" StrokeThickness="1" Padding="6,2">
+                            <Entry Text="{Binding BrokerIp}" Placeholder="localhost"
+                                   TextColor="{DynamicResource PrimaryText}" FontSize="14"/>
+                        </Border>
+                        <Label Text="{Binding BrokerIpError}" FontSize="11" TextColor="{StaticResource DangerColor}"
+                               IsVisible="{Binding BrokerIpError, Converter={StaticResource StringNotEmptyConverter}}"/>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Puerto Broker" FontSize="12" TextColor="{DynamicResource SecondaryText}"/>
+                        <Border BackgroundColor="{DynamicResource InputBackground}" StrokeShape="RoundRectangle 10"
+                                Stroke="{DynamicResource BorderColor}" StrokeThickness="1" Padding="6,2">
+                            <Entry Text="{Binding BrokerPort}" Placeholder="5672" Keyboard="Numeric"
+                                   TextColor="{DynamicResource PrimaryText}" FontSize="14"/>
+                        </Border>
+                        <Label Text="{Binding BrokerPortError}" FontSize="11" TextColor="{StaticResource DangerColor}"
+                               IsVisible="{Binding BrokerPortError, Converter={StaticResource StringNotEmptyConverter}}"/>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Cola / Exchange" FontSize="12" TextColor="{DynamicResource SecondaryText}"/>
+                        <Border BackgroundColor="{DynamicResource InputBackground}" StrokeShape="RoundRectangle 10"
+                                Stroke="{DynamicResource BorderColor}" StrokeThickness="1" Padding="6,2">
+                            <Entry Text="{Binding ExchangeName}" Placeholder="llmchat_exchange"
+                                   TextColor="{DynamicResource PrimaryText}" FontSize="14"/>
+                        </Border>
+                        <Label Text="{Binding ExchangeNameError}" FontSize="11" TextColor="{StaticResource DangerColor}"
+                               IsVisible="{Binding ExchangeNameError, Converter={StaticResource StringNotEmptyConverter}}"/>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ═══════ LLM ═══════ -->
+            <Border BackgroundColor="{DynamicResource CardBackground}"
+                    StrokeShape="RoundRectangle 16"
+                    Stroke="{DynamicResource BorderColor}"
+                    StrokeThickness="1" Padding="18">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="LLM" FontSize="17" FontAttributes="Bold"
+                           TextColor="{DynamicResource AccentColor}"/>
+
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="URL" FontSize="12" TextColor="{DynamicResource SecondaryText}"/>
+                        <Border BackgroundColor="{DynamicResource InputBackground}" StrokeShape="RoundRectangle 10"
+                                Stroke="{DynamicResource BorderColor}" StrokeThickness="1" Padding="6,2">
+                            <Entry Text="{Binding LlmUrl}" Placeholder="http://localhost:1234"
+                                   TextColor="{DynamicResource PrimaryText}" FontSize="14"/>
+                        </Border>
+                        <Label Text="{Binding LlmUrlError}" FontSize="11" TextColor="{StaticResource DangerColor}"
+                               IsVisible="{Binding LlmUrlError, Converter={StaticResource StringNotEmptyConverter}}"/>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Modelo" FontSize="12" TextColor="{DynamicResource SecondaryText}"/>
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                            <Border BackgroundColor="{DynamicResource InputBackground}" StrokeShape="RoundRectangle 10"
+                                    Stroke="{DynamicResource BorderColor}" StrokeThickness="1" Padding="6,2">
+                                <Picker x:Name="ModelPicker"
+                                        ItemsSource="{Binding AvailableModels}"
+                                        SelectedItem="{Binding Model}"
+                                        TextColor="{DynamicResource PrimaryText}"
+                                        FontSize="14" Title="Selecciona modelo..."/>
+                            </Border>
+                            <Button Grid.Column="1" Text="Recargar"
+                                    Command="{Binding LoadModelsCommand}"
+                                    BackgroundColor="{StaticResource PrimaryColor}"
+                                    TextColor="White" CornerRadius="10" FontSize="12"
+                                    HeightRequest="40" Padding="14,0"/>
+                        </Grid>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="System Prompt" FontSize="12" TextColor="{DynamicResource SecondaryText}"/>
+                        <Border BackgroundColor="{DynamicResource InputBackground}" StrokeShape="RoundRectangle 10"
+                                Stroke="{DynamicResource BorderColor}" StrokeThickness="1" Padding="6,4">
+                            <Editor Text="{Binding SystemPrompt}" Placeholder="Personalidad del LLM..."
+                                    TextColor="{DynamicResource PrimaryText}" FontSize="14"
+                                    HeightRequest="90" AutoSize="TextChanges"/>
+                        </Border>
+                        <Label Text="{Binding SystemPromptError}" FontSize="11" TextColor="{StaticResource DangerColor}"
+                               IsVisible="{Binding SystemPromptError, Converter={StaticResource StringNotEmptyConverter}}"/>
+                    </VerticalStackLayout>
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Temperatura" FontSize="12" TextColor="{DynamicResource SecondaryText}"/>
+                            <Border BackgroundColor="{DynamicResource InputBackground}" StrokeShape="RoundRectangle 10"
+                                    Stroke="{DynamicResource BorderColor}" StrokeThickness="1" Padding="6,2">
+                                <Entry Text="{Binding Temperature}" Placeholder="0.7" Keyboard="Numeric"
+                                       TextColor="{DynamicResource PrimaryText}" FontSize="14"/>
+                            </Border>
+                            <Label Text="{Binding TemperatureError}" FontSize="11" TextColor="{StaticResource DangerColor}"
+                                   IsVisible="{Binding TemperatureError, Converter={StaticResource StringNotEmptyConverter}}"/>
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="1" Spacing="4">
+                            <Label Text="Max Token" FontSize="12" TextColor="{DynamicResource SecondaryText}"/>
+                            <Border BackgroundColor="{DynamicResource InputBackground}" StrokeShape="RoundRectangle 10"
+                                    Stroke="{DynamicResource BorderColor}" StrokeThickness="1" Padding="6,2">
+                                <Entry Text="{Binding MaxTokens}" Placeholder="150" Keyboard="Numeric"
+                                       TextColor="{DynamicResource PrimaryText}" FontSize="14"/>
+                            </Border>
+                            <Label Text="{Binding MaxTokensError}" FontSize="11" TextColor="{StaticResource DangerColor}"
+                                   IsVisible="{Binding MaxTokensError, Converter={StaticResource StringNotEmptyConverter}}"/>
+                        </VerticalStackLayout>
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ═══════ APARIENCIA ═══════ -->
+            <Border BackgroundColor="{DynamicResource CardBackground}"
+                    StrokeShape="RoundRectangle 16"
+                    Stroke="{DynamicResource BorderColor}"
+                    StrokeThickness="1" Padding="18">
+                <VerticalStackLayout Spacing="14">
+                    <Label Text="Apariencia" FontSize="17" FontAttributes="Bold"
+                           TextColor="{DynamicResource AccentColor}"/>
+
+                    <!-- Modo oscuro (Switch) -->
+                    <Grid ColumnDefinitions="*,Auto" HeightRequest="40">
+                        <Label Text="Modo oscuro" FontSize="14"
+                               TextColor="{DynamicResource PrimaryText}" VerticalOptions="Center"/>
+                        <Switch Grid.Column="1"
+                                IsToggled="{Binding IsDarkMode}"
+                                OnColor="{StaticResource PrimaryColor}"
+                                HorizontalOptions="End"
+                                VerticalOptions="Center"
+                                Margin="0"/>
+                    </Grid>
+
+                    <!-- Vista previa -->
+                    <Border BackgroundColor="{DynamicResource InputBackground}"
+                            StrokeShape="RoundRectangle 12" StrokeThickness="0"
+                            Padding="14,10">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Vista previa" FontSize="10"
+                                   TextColor="{DynamicResource SecondaryText}" HorizontalOptions="Center"/>
+                            <!-- Mensaje recibido preview -->
+                            <Border BackgroundColor="{Binding ReceivedPreviewColor}"
+                                    Stroke="{DynamicResource BorderColor}"
+                                    StrokeShape="RoundRectangle 4,14,14,14"
+                                    StrokeThickness="1"
+                                    HorizontalOptions="Start"
+                                    Padding="10,6" MaximumWidthRequest="200">
+                                <VerticalStackLayout Spacing="2">
+                                    <Label Text="Otro usuario" FontSize="10" FontAttributes="Bold"
+                                           TextColor="{Binding ReceivedTextColor}"/>
+                                    <Label Text="Hola, que tal?" FontSize="12"
+                                           TextColor="{Binding ReceivedTextColor}"/>
+                                </VerticalStackLayout>
+                            </Border>
+                            <!-- Mensaje enviado preview -->
+                            <Border BackgroundColor="{Binding SentPreviewColor}"
+                                    StrokeShape="RoundRectangle 14,4,14,14"
+                                    StrokeThickness="0"
+                                    HorizontalOptions="End"
+                                    Padding="10,6" MaximumWidthRequest="200">
+                                <VerticalStackLayout Spacing="2">
+                                    <Label Text="Tú" FontSize="10" FontAttributes="Bold"
+                                           TextColor="{Binding SentTextColor}"/>
+                                    <Label Text="Muy bien, gracias" FontSize="12"
+                                           TextColor="{Binding SentTextColor}"/>
+                                </VerticalStackLayout>
+                            </Border>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Mensaje enviado -->
+                    <VerticalStackLayout Spacing="6">
+                        <HorizontalStackLayout Spacing="8">
+                            <BoxView Color="{Binding SentPreviewColor}"
+                                     WidthRequest="14" HeightRequest="14" CornerRadius="3" VerticalOptions="Center"/>
+                            <Label Text="Mensaje enviado" FontSize="13" FontAttributes="Bold"
+                                   TextColor="{DynamicResource PrimaryText}" VerticalOptions="Center"/>
+                            <Label Text="{Binding SentBubbleHex}" FontSize="12"
+                                   TextColor="{DynamicResource SecondaryText}" VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+                        <Grid ColumnDefinitions="20,*,35" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="6" RowSpacing="4">
+                            <Label Text="R" TextColor="#FF6B6B" FontSize="12" FontAttributes="Bold" VerticalOptions="Center"/>
+                            <Slider Grid.Column="1" Minimum="0" Maximum="255" Value="{Binding SentR}"
+                                    MinimumTrackColor="#FF6B6B" ThumbColor="#FF6B6B"/>
+                            <Label Grid.Column="2" Text="{Binding SentR, StringFormat='{0:F0}'}"
+                                   TextColor="{DynamicResource SecondaryText}" FontSize="11" VerticalOptions="Center"/>
+
+                            <Label Grid.Row="1" Text="G" TextColor="#4ADE80" FontSize="12" FontAttributes="Bold" VerticalOptions="Center"/>
+                            <Slider Grid.Row="1" Grid.Column="1" Minimum="0" Maximum="255" Value="{Binding SentG}"
+                                    MinimumTrackColor="#4ADE80" ThumbColor="#4ADE80"/>
+                            <Label Grid.Row="1" Grid.Column="2" Text="{Binding SentG, StringFormat='{0:F0}'}"
+                                   TextColor="{DynamicResource SecondaryText}" FontSize="11" VerticalOptions="Center"/>
+
+                            <Label Grid.Row="2" Text="B" TextColor="#6B9BFF" FontSize="12" FontAttributes="Bold" VerticalOptions="Center"/>
+                            <Slider Grid.Row="2" Grid.Column="1" Minimum="0" Maximum="255" Value="{Binding SentB}"
+                                    MinimumTrackColor="#6B9BFF" ThumbColor="#6B9BFF"/>
+                            <Label Grid.Row="2" Grid.Column="2" Text="{Binding SentB, StringFormat='{0:F0}'}"
+                                   TextColor="{DynamicResource SecondaryText}" FontSize="11" VerticalOptions="Center"/>
+                        </Grid>
+                    </VerticalStackLayout>
+
+                    <BoxView HeightRequest="1" Color="{DynamicResource BorderColor}" Margin="0,2"/>
+
+                    <!-- Mensaje recibido -->
+                    <VerticalStackLayout Spacing="6">
+                        <HorizontalStackLayout Spacing="8">
+                            <BoxView Color="{Binding ReceivedPreviewColor}"
+                                     WidthRequest="14" HeightRequest="14" CornerRadius="3" VerticalOptions="Center"/>
+                            <Label Text="Mensaje recibido" FontSize="13" FontAttributes="Bold"
+                                   TextColor="{DynamicResource PrimaryText}" VerticalOptions="Center"/>
+                            <Label Text="{Binding ReceivedBubbleHex}" FontSize="12"
+                                   TextColor="{DynamicResource SecondaryText}" VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+                        <Grid ColumnDefinitions="20,*,35" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="6" RowSpacing="4">
+                            <Label Text="R" TextColor="#FF6B6B" FontSize="12" FontAttributes="Bold" VerticalOptions="Center"/>
+                            <Slider Grid.Column="1" Minimum="0" Maximum="255" Value="{Binding RecR}"
+                                    MinimumTrackColor="#FF6B6B" ThumbColor="#FF6B6B"/>
+                            <Label Grid.Column="2" Text="{Binding RecR, StringFormat='{0:F0}'}"
+                                   TextColor="{DynamicResource SecondaryText}" FontSize="11" VerticalOptions="Center"/>
+
+                            <Label Grid.Row="1" Text="G" TextColor="#4ADE80" FontSize="12" FontAttributes="Bold" VerticalOptions="Center"/>
+                            <Slider Grid.Row="1" Grid.Column="1" Minimum="0" Maximum="255" Value="{Binding RecG}"
+                                    MinimumTrackColor="#4ADE80" ThumbColor="#4ADE80"/>
+                            <Label Grid.Row="1" Grid.Column="2" Text="{Binding RecG, StringFormat='{0:F0}'}"
+                                   TextColor="{DynamicResource SecondaryText}" FontSize="11" VerticalOptions="Center"/>
+
+                            <Label Grid.Row="2" Text="B" TextColor="#6B9BFF" FontSize="12" FontAttributes="Bold" VerticalOptions="Center"/>
+                            <Slider Grid.Row="2" Grid.Column="1" Minimum="0" Maximum="255" Value="{Binding RecB}"
+                                    MinimumTrackColor="#6B9BFF" ThumbColor="#6B9BFF"/>
+                            <Label Grid.Row="2" Grid.Column="2" Text="{Binding RecB, StringFormat='{0:F0}'}"
+                                   TextColor="{DynamicResource SecondaryText}" FontSize="11" VerticalOptions="Center"/>
+                        </Grid>
+                    </VerticalStackLayout>
+
+                    <!-- Restaurar colores -->
+                    <Button Text="Restaurar colores por defecto"
+                            Command="{Binding ResetBubbleColorsCommand}"
+                            BackgroundColor="{DynamicResource InputBackground}"
+                            TextColor="{DynamicResource SecondaryText}"
+                            CornerRadius="12" FontSize="12" HeightRequest="36"
+                            Margin="0,4,0,0"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ═══════ GUARDAR ═══════ -->
+            <Button Text="Guardar"
+                    Command="{Binding SaveCommand}"
+                    BackgroundColor="{StaticResource PrimaryColor}"
+                    TextColor="White"
+                    CornerRadius="22" FontSize="16" FontAttributes="Bold"
+                    HeightRequest="50" Margin="0,4,0,0"/>
+
+            <Label Text="{Binding StatusMessage}"
+                   FontSize="14"
+                   TextColor="{StaticResource SuccessColor}"
+                   HorizontalOptions="Center"
+                   IsVisible="{Binding IsStatusVisible}"
+                   Margin="0,0,0,20"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

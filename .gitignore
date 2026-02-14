@@ -1,0 +1,82 @@
+# Build Results
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+bld/
+artifacts/
+
+# Visual Studio / VS Code
+.vs/
+.vscode/
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+*.cache
+*.ide
+*.lsp
+
+# User-specific files (User preferences)
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# Rider / JetBrains
+.idea/
+*.sln.iml
+_ReSharper.*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# NuGet
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+packages/
+!**/packages/build/
+
+# Test Results
+TestResults/
+*.trdx
+
+# OS Generated Files
+.DS_Store
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+$RECYCLE.BIN/
+
+# MAUI / Mobile Specific
+*.ipa
+*.dSYM/
+*.apk
+*.aab
+*.app
+archive/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+*.swp
+*~
+release.bat
+
+# NCrunch
+_NCrunch_*
+.*crunch*.local.xml
+nCrunchTemp_*
+
+# Other generated files
+*.pidb
+*.pdb
+*.mdb
+*.opencover.xml

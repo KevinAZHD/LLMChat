@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:LLMChat.ViewModels"
+             xmlns:models="clr-namespace:LLMChat.Models"
+             x:Class="LLMChat.Views.ChatPage"
+             x:DataType="vm:ChatViewModel"
+             Title="Chat"
+             BackgroundColor="{DynamicResource PageBackground}">
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Padding="0">
+
+        <!-- HEADER -->
+        <Border Grid.Row="0"
+                BackgroundColor="{DynamicResource HeaderBackground}"
+                StrokeThickness="0"
+                Padding="16,14">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+
+                <!-- LED -->
+                <BoxView WidthRequest="8" HeightRequest="8"
+                         CornerRadius="4"
+                         Color="{Binding IsConnected, Converter={StaticResource ConnectionColorConverter}}"
+                         VerticalOptions="Center"/>
+
+                <!-- Estado -->
+                <Label Grid.Column="1"
+                       Text="{Binding StatusText}"
+                       TextColor="{DynamicResource HeaderText}"
+                       FontSize="14"
+                       FontAttributes="Bold"
+                       VerticalOptions="Center"
+                       LineBreakMode="TailTruncation"/>
+
+                <!-- Botón Limpiar (solo si desconectado) -->
+                <Button Grid.Column="2"
+                        Text="Limpiar"
+                        Command="{Binding ClearMessagesCommand}"
+                        IsVisible="{Binding IsConnected, Converter={StaticResource InvertBoolConverter}}"
+                        BackgroundColor="{DynamicResource InputBackground}"
+                        TextColor="{DynamicResource SecondaryText}"
+                        CornerRadius="20"
+                        FontSize="12"
+                        HeightRequest="34"
+                        Padding="14,0"/>
+
+                <!-- Conectar / Desconectar -->
+                <Button Grid.Column="3"
+                        Text="Conectar"
+                        Command="{Binding ConnectCommand}"
+                        IsVisible="{Binding IsConnected, Converter={StaticResource InvertBoolConverter}}"
+                        BackgroundColor="{StaticResource SuccessColor}"
+                        TextColor="#1A1A2E"
+                        CornerRadius="20"
+                        FontSize="13"
+                        FontAttributes="Bold"
+                        HeightRequest="38"
+                        Padding="20,0"/>
+
+                <Button Grid.Column="3"
+                        Text="Desconectar"
+                        Command="{Binding DisconnectCommand}"
+                        IsVisible="{Binding IsConnected}"
+                        BackgroundColor="{StaticResource DangerColor}"
+                        TextColor="White"
+                        CornerRadius="20"
+                        FontSize="13"
+                        FontAttributes="Bold"
+                        HeightRequest="38"
+                        Padding="20,0"/>
+            </Grid>
+        </Border>
+
+        <!-- INDICADOR "ESCRIBIENDO..." (arriba centrado) -->
+        <Border Grid.Row="1"
+                IsVisible="{Binding IsOtherTyping}"
+                BackgroundColor="#2A2A4A"
+                StrokeShape="RoundRectangle 0,0,12,12"
+                StrokeThickness="0"
+                HorizontalOptions="Center"
+                Padding="16,6">
+            <Label Text="{Binding OtherTypingText}"
+                   FontSize="12"
+                   FontAttributes="Italic"
+                   TextColor="{StaticResource AccentColor}"/>
+        </Border>
+
+        <!-- MENSAJES -->
+        <CollectionView Grid.Row="2"
+                        ItemsSource="{Binding Messages}"
+                        x:Name="MessagesCollection"
+                        Margin="12,8,12,4"
+                        ItemSizingStrategy="MeasureAllItems"
+                        ItemsUpdatingScrollMode="KeepLastItemInView">
+            <CollectionView.EmptyView>
+                <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="8" Padding="40">
+                    <Label Text="💬" FontSize="48" HorizontalOptions="Center"/>
+                    <Label Text="Sin mensajes aún"
+                           FontSize="16"
+                           TextColor="{DynamicResource SecondaryText}"
+                           HorizontalOptions="Center"/>
+                    <Label Text="Conéctate y envía el primer mensaje"
+                           FontSize="13"
+                           TextColor="{StaticResource PlaceholderText}"
+                           HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:ChatMessage">
+                    <Grid Padding="2,4" ColumnDefinitions="*">
+
+                        <!-- Burbuja RECIBIDA -->
+                        <Border IsVisible="{Binding IsFromCurrentUser, Converter={StaticResource InvertBoolConverter}}"
+                                BackgroundColor="{DynamicResource ReceivedBubble}"
+                                Stroke="{DynamicResource BorderColor}"
+                                StrokeShape="RoundRectangle 4,18,18,18"
+                                StrokeThickness="1"
+                                HorizontalOptions="Start"
+                                MaximumWidthRequest="340"
+                                Padding="14,10">
+                            <VerticalStackLayout Spacing="3">
+                                <Label Text="{Binding Sender}"
+                                       FontSize="11"
+                                       FontAttributes="Bold"
+                                       TextColor="{DynamicResource ReceivedBubbleText}"/>
+                                <Label Text="{Binding Message}"
+                                       FontSize="14"
+                                       TextColor="{DynamicResource ReceivedBubbleText}"
+                                       LineBreakMode="WordWrap"/>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- Burbuja ENVIADA -->
+                        <Border IsVisible="{Binding IsFromCurrentUser}"
+                                BackgroundColor="{DynamicResource SentBubble}"
+                                StrokeShape="RoundRectangle 18,4,18,18"
+                                StrokeThickness="0"
+                                HorizontalOptions="End"
+                                MaximumWidthRequest="340"
+                                Padding="14,10">
+                            <VerticalStackLayout Spacing="3">
+                                <Label Text="{Binding Sender}"
+                                       FontSize="11"
+                                       FontAttributes="Bold"
+                                       TextColor="{DynamicResource SentBubbleText}"/>
+                                <Label Text="{Binding Message}"
+                                       FontSize="14"
+                                       TextColor="{DynamicResource SentBubbleText}"
+                                       LineBreakMode="WordWrap"/>
+                            </VerticalStackLayout>
+                        </Border>
+
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- BARRA INFERIOR -->
+        <Border Grid.Row="3"
+                BackgroundColor="{DynamicResource HeaderBackground}"
+                StrokeThickness="0"
+                Padding="12,10,12,14">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                <Border BackgroundColor="{DynamicResource InputBackground}"
+                        StrokeShape="RoundRectangle 22"
+                        Stroke="{DynamicResource BorderColor}"
+                        StrokeThickness="1"
+                        Padding="8,0"
+                        Opacity="{Binding IsAutoConversing, Converter={StaticResource AutoConversOpacity}}">
+                    <Entry Text="{Binding MessageText}"
+                           Placeholder="Escribe un mensaje..."
+                           PlaceholderColor="{DynamicResource PlaceholderText}"
+                           TextColor="{DynamicResource PrimaryText}"
+                           FontSize="15"
+                           ReturnType="Send"
+                           ReturnCommand="{Binding SendMessageCommand}"
+                           IsEnabled="{Binding IsAutoConversing, Converter={StaticResource InvertBoolConverter}}"/>
+                </Border>
+
+                <Border Grid.Column="1"
+                        BackgroundColor="{StaticResource PrimaryColor}"
+                        StrokeShape="RoundRectangle 22"
+                        StrokeThickness="0"
+                        WidthRequest="50"
+                        HeightRequest="44"
+                        Opacity="{Binding IsAutoConversing, Converter={StaticResource AutoConversOpacity}}">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding SendMessageCommand}"/>
+                    </Border.GestureRecognizers>
+                    <Label Text="➤"
+                           FontSize="20"
+                           TextColor="White"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center"/>
+                </Border>
+            </Grid>
+        </Border>
+
+    </Grid>
+
+</ContentPage>
