@@ -83,13 +83,15 @@ Antes de instalar la app, asegúrate de tener los servicios base funcionando:
 docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 macintoshplus/rabbitmq-management:latest@sha256:cd8fae9e67bba62f42d42fb311b5c9ce130572fafcbcaaa9575a3d8859c8641b
 ```
 
-**⚠️ IMPORTANTE: Configuración para acceso externo (Móvil)**
-Por seguridad, RabbitMQ bloquea al usuario `guest` desde fuera del PC. Para conectar tu móvil, debes permitirlo ejecutando esto en tu terminal (con el contenedor levantado):
+**⚠️ IMPORTANTE: Configuración para acceso externo (Móvil / Dispositivos remotos)**
+Por seguridad, RabbitMQ bloquea al usuario `guest` desde fuera del PC. Para conectar desde un móvil u otra máquina, debes permitirlo ejecutando esto en tu terminal (con el contenedor levantado):
 
 ```bash
 docker exec Rabbitmq sh -c "echo '[{rabbit, [{loopback_users, []}]}].' > /etc/rabbitmq/rabbitmq.config"
 docker restart Rabbitmq
 ```
+
+> **Nota:** Si la otra persona tiene su propio servidor RabbitMQ con un usuario/contraseña diferente a `guest/guest`, configúralos desde los campos **Usuario RabbitMQ** y **Contraseña RabbitMQ** en Ajustes.
 
 **B. Configurar LM Studio**
 1. Arranca el servidor local en `http://localhost:1234`.
@@ -144,7 +146,9 @@ Configuración de la conexión al servidor RabbitMQ y el nombre de usuario que i
 - **Nombre de usuario**: identificador de esta instancia (ej: "LLM1", "LLM2").
 - **IP Broker**: dirección del servidor RabbitMQ (`localhost` o la IP de la máquina remota).
 - **Puerto Broker**: puerto AMQP (por defecto `5672`).
-- **Cola / Exchange**: nombre del exchange compartido entre todas las instancias.
+- **Exchange** (sala de mensajes compartida): nombre del exchange donde se publican y reciben los mensajes. Todas las instancias que quieran comunicarse deben usar el mismo nombre (ej: `llmchat_exchange`, `groupChat`).
+- **Usuario / Contraseña RabbitMQ**: credenciales de acceso al broker (por defecto `guest` / `guest`). Configúralas si la otra persona usa un servidor con credenciales diferentes.
+- **Virtual Host** (espacio aislado del broker): partición lógica del servidor RabbitMQ. Por defecto es `/`. Solo cámbialo si el servidor remoto usa un VHost diferente.
 
 #### LLM
 
@@ -192,14 +196,18 @@ Pulsar **Guardar** para aplicar todos los cambios.
 
 ## Comunicación entre dispositivos
 
-### Con un compañero
+### Con otra persona (remoto o local)
 
-La app permite conectar con otro compañero en diferentes dispositivos. Para ello:
+La app permite conectar con otra persona, ya sea que use LLMChat u otra aplicación de chat compatible con RabbitMQ:
 
 1. **Ambos deben apuntar al mismo servidor RabbitMQ.** Si el broker corre en la máquina A (IP: 192.168.1.100), la máquina B configura la IP del broker como `192.168.1.100`.
-2. **Ambos deben usar el mismo nombre de Exchange** (por defecto: `llmchat_exchange`).
-3. **Cada uno configura su propio LLM local** con LM Studio en su máquina.
-4. Al conectar, cualquier mensaje publicado en el Exchange llega a todos los suscriptores, permitiendo la comunicación cruzada entre IAs de diferentes máquinas.
+2. **Ambos deben usar el mismo Exchange** (ej: `llmchat_exchange` o `groupChat`).
+3. **Mismo Virtual Host** — por defecto `/`, pero si el servidor remoto usa otro diferente, configúralo en Ajustes.
+4. **Mismas credenciales** — usa los campos Usuario/Contraseña si el broker requiere credenciales diferentes a `guest/guest`.
+5. **Cada uno configura su propio LLM local** con LM Studio en su máquina.
+6. Al conectar, cualquier mensaje publicado en el Exchange llega a todos los suscriptores.
+
+> **Compatibilidad con otras apps:** LLMChat es compatible con otras aplicaciones de chat que publiquen al mismo exchange de RabbitMQ. Los mensajes recibidos se limpian automáticamente de artefactos técnicos (como `[TOOL_CALLS]`, wrappers JSON de herramientas LLM, etc.) para mostrar solo el texto legible.
 
 Requisitos de red:
 
@@ -219,9 +227,12 @@ Sobre los requisitos base, se han implementado las siguientes mejoras:
 - **Modo oscuro / claro**: interruptor instantáneo que cambia toda la cromatura de la interfaz sin afectar los colores personalizados de los mensajes.
 - **Personalización de colores de mensajes por RGB**: sliders de 0 a 255 para cada canal (R, G, B) con vista previa en tiempo real y valor hexadecimal.
 - **Texto adaptativo por luminancia**: el color del texto de los mensajes se calcula automáticamente (blanco o negro) según la luminancia del color de fondo de los mensajes, utilizando la fórmula: L = 0.299R + 0.587G + 0.114B.
-- **Indicador "escribiendo..."**: notificación en tiempo real cuando la otra IA está generando su respuesta.
 - **Validación de formulario**: todos los campos de configuración se validan antes de guardar, con mensajes de error específicos por campo.
-- **Persistencia de configuración**: todos los ajustes (broker, LLM, apariencia) se guardan en Preferences y se restauran automáticamente al reiniciar la app.
+- **Persistencia de configuración**: todos los ajustes (broker, LLM, apariencia, credenciales RabbitMQ) se guardan en Preferences y se restauran automáticamente al reiniciar la app.
 - **Detección automática de modelos**: botón "Recargar" que consulta la API de LM Studio y lista los modelos disponibles en un selector.
 - **Historial de conversación para contexto**: el LLM recibe los últimos 16 mensajes como contexto, manteniendo coherencia en la conversación.
 - **Borde visible en mensajes recibidos**: borde sutil para que los mensajes recibidos no se confundan con el fondo en cualquier combinación de colores.
+- **Limpieza automática de mensajes**: los mensajes recibidos de otras aplicaciones se limpian de artefactos LLM (`[TOOL_CALLS]`, wrappers JSON, function calls, caracteres unicode escapados) para mostrar solo el texto legible.
+- **Compatibilidad multi-formato**: acepta mensajes tanto en formato JSON (con múltiples variantes de campos: `sender`/`user`/`from`, `message`/`content`/`text`) como texto plano, incluyendo formato `nombre: mensaje`.
+- **Credenciales RabbitMQ configurables**: usuario y contraseña del broker editables desde Ajustes para conectar a servidores con diferentes credenciales.
+- **Virtual Host configurable**: permite conectar a diferentes espacios aislados del broker.

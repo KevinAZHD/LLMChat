@@ -56,6 +56,9 @@ namespace LLMChat.ViewModels
                 servicioRabbit.BrokerHost = ajustesVm.BrokerIp;
                 servicioRabbit.BrokerPort = int.TryParse(ajustesVm.BrokerPort, out var puerto) ? puerto : 5672;
                 servicioRabbit.ExchangeName = ajustesVm.ExchangeName;
+                servicioRabbit.RabbitUser = ajustesVm.RabbitUser;
+                servicioRabbit.RabbitPassword = ajustesVm.RabbitPassword;
+                servicioRabbit.VirtualHost = ajustesVm.RabbitVHost;
 
                 AplicarAjustesLlm();
 
@@ -189,7 +192,6 @@ namespace LLMChat.ViewModels
                     procesando = true;
                     try
                     {
-                        await servicioRabbit.PublishTypingAsync(ajustesVm.UserName, true);
                         await Task.Delay(1500);
 
                         AplicarAjustesLlm();
@@ -200,7 +202,6 @@ namespace LLMChat.ViewModels
                         catch { historial = new List<ChatMessage>(); }
 
                         var respuesta = await servicioLlm.GetResponseAsync(historial);
-                        await servicioRabbit.PublishTypingAsync(ajustesVm.UserName, false);
 
                         if (!string.IsNullOrEmpty(respuesta))
                         {
@@ -221,7 +222,6 @@ namespace LLMChat.ViewModels
                     }
                     catch (Exception ex)
                     {
-                        try { await servicioRabbit.PublishTypingAsync(ajustesVm.UserName, false); } catch { }
                         MainThread.BeginInvokeOnMainThread(() =>
                             StatusText = $"Error LLM: {ex.Message}");
                     }

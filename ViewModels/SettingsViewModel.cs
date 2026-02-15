@@ -20,6 +20,9 @@ namespace LLMChat.ViewModels
         [ObservableProperty] private string _brokerIp = "localhost";
         [ObservableProperty] private string _brokerPort = "5672";
         [ObservableProperty] private string _exchangeName = "llmchat_exchange";
+        [ObservableProperty] private string _rabbitUser = "guest";
+        [ObservableProperty] private string _rabbitPassword = "guest";
+        [ObservableProperty] private string _rabbitVHost = "/";
 
         //LLM
         [ObservableProperty] private string _llmUrl = "http://localhost:1234";
@@ -79,14 +82,11 @@ namespace LLMChat.ViewModels
                 BrokerIp = "10.0.2.2";
                 LlmUrl = "http://10.0.2.2:1234";
             }
+
+            LoadSavedSettings();
         }
 
-        //Al cambiar modelo, actualizar nombre de usuario
-        partial void OnModelChanged(string value)
-        {
-            if (!string.IsNullOrEmpty(value))
-                UserName = value;
-        }
+
 
         //Al cambiar modo oscuro, guardar y aplicar
         partial void OnIsDarkModeChanged(bool value)
@@ -192,6 +192,9 @@ namespace LLMChat.ViewModels
             Preferences.Set("BrokerIp", BrokerIp);
             Preferences.Set("BrokerPort", BrokerPort);
             Preferences.Set("ExchangeName", ExchangeName);
+            Preferences.Set("RabbitUser", RabbitUser);
+            Preferences.Set("RabbitPassword", RabbitPassword);
+            Preferences.Set("RabbitVHost", RabbitVHost);
             Preferences.Set("LlmUrl", LlmUrl);
             Preferences.Set("SystemPrompt", SystemPrompt);
             Preferences.Set("Model", Model);
@@ -303,6 +306,9 @@ namespace LLMChat.ViewModels
             BrokerIp = Preferences.Get("BrokerIp", BrokerIp);
             BrokerPort = Preferences.Get("BrokerPort", BrokerPort);
             ExchangeName = Preferences.Get("ExchangeName", ExchangeName);
+            RabbitUser = Preferences.Get("RabbitUser", RabbitUser);
+            RabbitPassword = Preferences.Get("RabbitPassword", RabbitPassword);
+            RabbitVHost = Preferences.Get("RabbitVHost", RabbitVHost);
             LlmUrl = Preferences.Get("LlmUrl", LlmUrl);
             SystemPrompt = Preferences.Get("SystemPrompt", SystemPrompt);
             Model = Preferences.Get("Model", Model);

@@ -58,7 +58,7 @@
                     </VerticalStackLayout>
 
                     <VerticalStackLayout Spacing="4">
-                        <Label Text="Cola / Exchange" FontSize="12" TextColor="{DynamicResource SecondaryText}"/>
+                        <Label Text="Exchange (sala de mensajes compartida)" FontSize="12" TextColor="{DynamicResource SecondaryText}"/>
                         <Border BackgroundColor="{DynamicResource InputBackground}" StrokeShape="RoundRectangle 10"
                                 Stroke="{DynamicResource BorderColor}" StrokeThickness="1" Padding="6,2">
                             <Entry Text="{Binding ExchangeName}" Placeholder="llmchat_exchange"
@@ -66,6 +66,34 @@
                         </Border>
                         <Label Text="{Binding ExchangeNameError}" FontSize="11" TextColor="{StaticResource DangerColor}"
                                IsVisible="{Binding ExchangeNameError, Converter={StaticResource StringNotEmptyConverter}}"/>
+                    </VerticalStackLayout>
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Usuario RabbitMQ" FontSize="12" TextColor="{DynamicResource SecondaryText}"/>
+                            <Border BackgroundColor="{DynamicResource InputBackground}" StrokeShape="RoundRectangle 10"
+                                    Stroke="{DynamicResource BorderColor}" StrokeThickness="1" Padding="6,2">
+                                <Entry Text="{Binding RabbitUser}" Placeholder="guest"
+                                       TextColor="{DynamicResource PrimaryText}" FontSize="14"/>
+                            </Border>
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="1" Spacing="4">
+                            <Label Text="Contraseña RabbitMQ" FontSize="12" TextColor="{DynamicResource SecondaryText}"/>
+                            <Border BackgroundColor="{DynamicResource InputBackground}" StrokeShape="RoundRectangle 10"
+                                    Stroke="{DynamicResource BorderColor}" StrokeThickness="1" Padding="6,2">
+                                <Entry Text="{Binding RabbitPassword}" Placeholder="guest" IsPassword="True"
+                                       TextColor="{DynamicResource PrimaryText}" FontSize="14"/>
+                            </Border>
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Virtual Host (espacio aislado del broker)" FontSize="12" TextColor="{DynamicResource SecondaryText}"/>
+                        <Border BackgroundColor="{DynamicResource InputBackground}" StrokeShape="RoundRectangle 10"
+                                Stroke="{DynamicResource BorderColor}" StrokeThickness="1" Padding="6,2">
+                            <Entry Text="{Binding RabbitVHost}" Placeholder="/"
+                                   TextColor="{DynamicResource PrimaryText}" FontSize="14"/>
+                        </Border>
                     </VerticalStackLayout>
                 </VerticalStackLayout>
             </Border>
