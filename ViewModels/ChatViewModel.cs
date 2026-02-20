@@ -192,6 +192,9 @@ namespace LLMChat.ViewModels
                     procesando = true;
                     try
                     {
+                        //Notificar que estoy escribiendo...
+                        await servicioRabbit.PublishTypingAsync(ajustesVm.UserName, true);
+
                         await Task.Delay(1500);
 
                         AplicarAjustesLlm();
@@ -202,6 +205,9 @@ namespace LLMChat.ViewModels
                         catch { historial = new List<ChatMessage>(); }
 
                         var respuesta = await servicioLlm.GetResponseAsync(historial);
+
+                        //Dejar de notificar escritura
+                        await servicioRabbit.PublishTypingAsync(ajustesVm.UserName, false);
 
                         if (!string.IsNullOrEmpty(respuesta))
                         {
@@ -222,6 +228,7 @@ namespace LLMChat.ViewModels
                     }
                     catch (Exception ex)
                     {
+                        await servicioRabbit.PublishTypingAsync(ajustesVm.UserName, false);
                         MainThread.BeginInvokeOnMainThread(() =>
                             StatusText = $"Error LLM: {ex.Message}");
                     }

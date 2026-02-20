@@ -27,9 +27,9 @@ namespace LLMChat.Services
         public event Action<string, string>? OnMessageReceived;
         public event Action<string, bool>? OnTypingReceived;
 
-        //Campos JSON conocidos para extraer remitente y contenido
-        private static readonly string[] CamposRemitente = ["sender", "user", "from", "username", "name"];
-        private static readonly string[] CamposMensaje = ["message", "content", "text", "body", "msg"];
+        //Campos JSON conocidos (más robusto: SenderId, Content, etc.)
+        private static readonly string[] CamposRemitente = ["sender", "senderId", "sender_id", "user", "userId", "from", "username", "name"];
+        private static readonly string[] CamposMensaje = ["message", "content", "text", "body", "msg", "payload"];
 
         //Conectar al broker y suscribirse al exchange
         public async Task ConnectAsync(string nombreUsuario)
@@ -71,31 +71,63 @@ namespace LLMChat.Services
         //Procesar mensaje recibido del exchange
         private async Task ProcesarMensajeAsync(object model, BasicDeliverEventArgs ea)
         {
-            var texto = Encoding.UTF8.GetString(ea.Body.ToArray());
-
             try
             {
+                //1. Detectar Notificación de Escritura vía HEADERS (Invisible para otros)
+                if (ea.BasicProperties.Headers != null &&
+                    ea.BasicProperties.Headers.TryGetValue("x-msg-type", out var typeVal))
+                {
+                    var typeStr = Encoding.UTF8.GetString((byte[])typeVal);
+                    if (typeStr == "typing")
+                    {
+                        var senderName = "Remoto";
+                        if (ea.BasicProperties.Headers.TryGetValue("x-sender", out var senderVal))
+                            senderName = Encoding.UTF8.GetString((byte[])senderVal);
+
+                        var isTyping = false;
+                        if (ea.BasicProperties.Headers.TryGetValue("x-is-typing", out var typingVal))
+                            bool.TryParse(Encoding.UTF8.GetString((byte[])typingVal), out isTyping);
+
+                        if (!string.Equals(senderName, usuarioActual, StringComparison.OrdinalIgnoreCase))
+                            OnTypingReceived?.Invoke(senderName, isTyping);
+                        
+                        return; //Importante: No seguir procesando el cuerpo (que está vacío)
+                    }
+                }
+
+                //2. Procesar Mensaje Normal (Texto/JSON)
+                var texto = Encoding.UTF8.GetString(ea.Body.ToArray());
+                if (string.IsNullOrWhiteSpace(texto)) return; //Ignorar mensajes vacíos
+
                 using var doc = JsonDocument.Parse(texto);
                 var root = doc.RootElement;
-
+                
                 var remitente = ExtraerCampo(root, CamposRemitente) ?? "Remoto";
                 var tipo = ExtraerCampo(root, ["type"]) ?? "message";
 
                 if (string.Equals(remitente, usuarioActual, StringComparison.OrdinalIgnoreCase))
                     return;
 
+                //Compatibilidad con apps antiguas que mandan typing por JSON
                 if (tipo == "typing" && root.TryGetProperty("isTyping", out var typingEl))
+                {
                     OnTypingReceived?.Invoke(remitente, typingEl.GetBoolean());
+                }
                 else
                 {
-                    var mensaje = LimpiarMensaje(ExtraerCampo(root, CamposMensaje) ?? texto);
-                    if (!string.IsNullOrEmpty(mensaje))
-                        OnMessageReceived?.Invoke(remitente, mensaje);
+                    var contenido = ExtraerCampo(root, CamposMensaje) ?? texto;
+                    var mensajeLimpio = LimpiarMensaje(contenido);
+                    
+                    if (!string.IsNullOrEmpty(mensajeLimpio))
+                        OnMessageReceived?.Invoke(remitente, mensajeLimpio);
                 }
             }
             catch (JsonException)
             {
-                //Texto plano — extraer "nombre: mensaje" si aplica
+                var texto = Encoding.UTF8.GetString(ea.Body.ToArray());
+                //Ignorar vacíos
+                if(string.IsNullOrWhiteSpace(texto)) return;
+
                 var (remitente, mensaje) = SepararTextoPlano(texto);
                 mensaje = LimpiarMensaje(mensaje);
 
@@ -105,14 +137,10 @@ namespace LLMChat.Services
             }
             catch
             {
-                if (!string.IsNullOrWhiteSpace(texto))
-                    OnMessageReceived?.Invoke("Remoto", texto);
+                 //Fallback seguro
             }
-
-            await Task.CompletedTask;
         }
 
-        //Publicar mensaje de chat
         public async Task PublishMessageAsync(string remitente, string mensaje)
         {
             if (canal == null) throw new InvalidOperationException("No conectado a RabbitMQ.");
@@ -128,13 +156,24 @@ namespace LLMChat.Services
             await canal.BasicPublishAsync(ExchangeName, "", Encoding.UTF8.GetBytes(json));
         }
 
-        //Publicar notificación de "escribiendo..."
+        //Publicar notificación de "escribiendo..." (VERSIÓN SILENCIOSA VÍA HEADERS)
         public async Task PublishTypingAsync(string remitente, bool escribiendo)
         {
             if (canal == null) return;
 
-            var json = JsonSerializer.Serialize(new { type = "typing", sender = remitente, isTyping = escribiendo });
-            await canal.BasicPublishAsync(ExchangeName, "", Encoding.UTF8.GetBytes(json));
+            var props = new BasicProperties
+            {
+                Headers = new Dictionary<string, object>
+                {
+                    { "x-msg-type", "typing" },
+                    { "x-sender", remitente },
+                    { "x-is-typing", escribiendo.ToString() }
+                }
+            };
+
+            //Enviamos cuerpo VACÍO.
+            //La app leerá los headers y mostrará el indicador.
+            await canal.BasicPublishAsync(ExchangeName, "", false, props, ReadOnlyMemory<byte>.Empty);
         }
 
         //Desconectar del broker
@@ -162,12 +201,19 @@ namespace LLMChat.Services
 
         //── Helpers ──────────────────────────────────────────────────────
 
-        //Extraer primer campo JSON que exista de una lista de nombres
+        //Extraer primer campo JSON que coincida (insensible a mayúsculas)
         private static string? ExtraerCampo(JsonElement root, string[] campos)
         {
-            foreach (var campo in campos)
-                if (root.TryGetProperty(campo, out var el))
-                    return el.GetString();
+            //Busca propiedades que coincidan con la lista, ignorando mayúsculas/minúsculas
+            foreach (var prop in root.EnumerateObject())
+            {
+                if (campos.Contains(prop.Name, StringComparer.OrdinalIgnoreCase))
+                {
+                     return prop.Value.ValueKind == JsonValueKind.String 
+                        ? prop.Value.GetString() 
+                        : prop.Value.GetRawText().Trim('"');
+                }
+            }
             return null;
         }
 
